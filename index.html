@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Codeforces Profile</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .problem-category {
+            margin-top: 20px;
+        }
+        .problem-category h2 {
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .problem-list {
+            display: none;
+        }
+        .legendary-grandmaster { color: red; }
+        .grandmaster { color: #FF4500; }
+        .international-master { color: #FFA500; }
+        .candidate-master { color: mediumorchid; }
+        .expert { color: blue; }
+        .specialist { color: #20B2AA; }
+        .pupil { color: green; }
+        .newbie { color: #808080; }
+        .legendary-grandmaster, .international-grandmaster { font-weight: bold; }
+        .user-rating { font-weight: bold; }
+        .green { color: #00FF00; }
+        .red { color: #FF0000; }
+        .problem-info {
+            margin-left: 10px;
+        }
+        .problem-link {
+            color: #007bff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .problem-link:hover {
+            color: #0056b3;
+        }
+        .badge {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Codeforces Profile</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <input type="text" id="handleInput" class="form-control mb-2" placeholder="Enter your Codeforces handle">
+            </div>
+            <div class="col-md-6">
+                <button onclick="getProfile()" class="btn btn-primary btn-block">Get Profile</button>
+            </div>
+        </div>
+        <div id="profileInfo" class="mt-4"></div>
+        <div id="problems" class="mt-4"></div>
+    </div>
+
+    <script>
+        function getProfile() {
+            const handle = document.getElementById("handleInput").value;
+            const urlInfo = `https://codeforces.com/api/user.info?handles=${handle}`;
+            const urlRating = `https://codeforces.com/api/user.rating?handle=${handle}`;
+            const urlSubmissions = `https://codeforces.com/api/user.status?handle=${handle}&from=1&count=10000`;
+
+            fetch(urlInfo)
+                .then(response => response.json())
+                .then(data => {
+                    const userInfo = data.result[0];
+                    const rank = userInfo.rank;
+                    const rating = userInfo.rating;
+                    const name = userInfo.firstName + " " + userInfo.lastName;
+                    const profilePic = userInfo.titlePhoto;
+                    const university = userInfo.organization;
+
+                    fetch(urlRating)
+                        .then(response => response.json())
+                        .then(data => {
+                            const maxRating = Math.max(...data.result.map(entry => entry.newRating));
+                            const contestCount = data.result.length;
+
+                            fetch(urlSubmissions)
+                                .then(response => response.json())
+                                .then(data => {
+                                    const totalAttempts = data.result.length;
+                                    const solvedProblems = data.result.filter(item => item.verdict === "OK");
+                                    const uniqueSolvedProblems = removeDuplicates(solvedProblems);
+                                    displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, totalAttempts, uniqueSolvedProblems.length);
+                                    displaySolvedProblems(uniqueSolvedProblems);
+                                })
+                                .catch(error => console.log("Error fetching submissions: ", error));
+                        })
+                        .catch(error => console.log("Error fetching rating: ", error));
+                })
+                .catch(error => console.log("Error fetching profile: ", error));
+        }
+
+        function removeDuplicates(arr) {
+            const uniqueSet = new Set();
+            const uniqueArr = [];
+            arr.forEach(item => {
+                const problemId = `${item.problem.contestId}-${item.problem.index}`;
+                if (!uniqueSet.has(problemId)) {
+                    uniqueSet.add(problemId);
+                    uniqueArr.push(item);
+                }
+            });
+            return uniqueArr;
+        }
+
+        function displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, totalAttempts, solvedProblemsCount) {
+            const profileInfo = document.getElementById("profileInfo");
+            profileInfo.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <img src="${profilePic}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100px; height: 100px;">
+                        </div>
+                        <p class="card-text">Name: ${name}</p>
+                        <p class="card-text">University: ${university ? university : "N/A"}</p>
+                        <p class="card-text">Rank: <span class="${getRankColor(rank)}">${rank}</span></p>
+                        <p class="card-text">Rating: <span class="${getRatingColor(rating)}">${rating}</span></p>
+                        <p class="card-text">Max Rating: <span class="${getRatingColor(maxRating)}">${maxRating}</span></p>
+                        <p class="card-text">Contests Participated: ${contestCount}</p>
+                        <p class="card-text">Total Problems Attempted: ${totalAttempts}</p>
+                        <p class="card-text">Solved Problems: ${solvedProblemsCount}</p>
+                    </div>
+                </div>`;
+        }
+
+        function getRankColor(rank) {
+            switch(rank) {
+                case "legendary grandmaster":
+                case "international grandmaster":
+                    return "legendary-grandmaster";
+                case "grandmaster":
+                    return "grandmaster";
+                case "international master":
+                    return "international-master";
+                case "candidate master":
+                    return "candidate-master";
+                case "expert":
+                    return "expert";
+                case "specialist":
+                    return "specialist";
+                case "pupil":
+                    return "pupil";
+                case "newbie":
+                    return "newbie";
+                default:
+                    return "";
+            }
+        }
+
+        function getRatingColor(rating) {
+            if (rating >= 2400) {
+                return "legendary-grandmaster";
+            } else if (rating >= 2300) {
+                return "grandmaster";
+            } else if (rating >= 2100) {
+                return "international-master";
+            } else if (rating >= 1900) {
+                return "candidate-master";
+            } else if (rating >= 1600) {
+                return "expert";
+            } else if (rating >= 1400) {
+                return "specialist";
+            } else if (rating >= 1200) {
+                return "pupil";
+            } else {
+                return "newbie";
+            }
+        }
+
+        function displaySolvedProblems(problems) {
+            const problemsDiv = document.getElementById("problems");
+            problemsDiv.innerHTML = "";
+
+            // Grouping problems by rating
+            const groupedProblems = {};
+            problems.forEach(problem => {
+                const rating = problem.problem.rating;
+                if (!groupedProblems[rating]) {
+                    groupedProblems[rating] = [];
+                }
+                groupedProblems[rating].push(problem);
+            });
+
+            // Displaying grouped problems
+            for (const rating in groupedProblems) {
+                const problemList = groupedProblems[rating];
+                const problemCategory = document.createElement("div");
+                problemCategory.classList.add("problem-category");
+                const ratingHeading = document.createElement("h2");
+                ratingHeading.classList.add("text-primary");
+                ratingHeading.innerHTML = `Rating: <span class="${getRatingColor(rating)}">${rating}</span> (${problemList.length} Problems)`;
+                ratingHeading.addEventListener("click", function() {
+                    const list = this.nextElementSibling;
+                    if (list.style.display === "none" || list.style.display === "") {
+                        list.style.display = "block";
+                    } else {
+                        list.style.display = "none";
+                    }
+                });
+                problemCategory.appendChild(ratingHeading);
+                const ul = document.createElement("ul");
+                ul.classList.add("list-group", "problem-list");
+                problemList.forEach(problem => {
+                    const li = document.createElement("li");
+                    li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
+                    
+                    // Add link to the problem on Codeforces
+                    const problemLink = document.createElement("a");
+                    problemLink.href = `https://codeforces.com/contest/${problem.problem.contestId}/problem/${problem.problem.index}`;
+                    problemLink.textContent = problem.problem.name;
+                    problemLink.classList.add("problem-link");
+                    problemLink.target = "_blank"; // Open link in a new tab
+                    
+                    // Add div for problem information
+                    const problemInfoDiv = document.createElement("div");
+                    problemInfoDiv.classList.add("problem-info");
+
+                    // Add span for problem topics
+                    const span = document.createElement("span");
+                    span.classList.add("badge", "badge-primary", "badge-pill");
+                    span.textContent = `Topics: ${problem.problem.tags.join(", ")}`;
+                    
+                    li.appendChild(problemLink);
+                    li.appendChild(span);
+                    ul.appendChild(li);
+                });
+                problemCategory.appendChild(ul);
+                problemsDiv.appendChild(problemCategory);
+            }
+        }
+    </script>
+</body>
+</html>
