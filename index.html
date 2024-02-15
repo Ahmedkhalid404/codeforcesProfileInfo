@@ -51,6 +51,19 @@
         .badge {
             margin-left: 10px;
         }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+        .footer a {
+            color: #fff;
+            margin: 0 5px;
+        }
     </style>
 </head>
 <body>
@@ -107,20 +120,7 @@
                 .catch(error => console.log("Error fetching profile: ", error));
         }
 
-        function removeDuplicates(arr) {
-            const uniqueSet = new Set();
-            const uniqueArr = [];
-            arr.forEach(item => {
-                const problemId = `${item.problem.contestId}-${item.problem.index}`;
-                if (!uniqueSet.has(problemId)) {
-                    uniqueSet.add(problemId);
-                    uniqueArr.push(item);
-                }
-            });
-            return uniqueArr;
-        }
-
-        function displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, totalAttempts, solvedProblemsCount) {
+        function displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, totalAttempts, solvedCount) {
             const profileInfo = document.getElementById("profileInfo");
             profileInfo.innerHTML = `
                 <div class="card">
@@ -129,13 +129,13 @@
                             <img src="${profilePic}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100px; height: 100px;">
                         </div>
                         <p class="card-text">Name: ${name}</p>
-                        <p class="card-text">University: ${university ? university : "N/A"}</p>
                         <p class="card-text">Rank: <span class="${getRankColor(rank)}">${rank}</span></p>
                         <p class="card-text">Rating: <span class="${getRatingColor(rating)}">${rating}</span></p>
                         <p class="card-text">Max Rating: <span class="${getRatingColor(maxRating)}">${maxRating}</span></p>
-                        <p class="card-text">Contests Participated: ${contestCount}</p>
-                        <p class="card-text">Total Problems Attempted: ${totalAttempts}</p>
-                        <p class="card-text">Solved Problems: ${solvedProblemsCount}</p>
+                        <p class="card-text">University: ${university || 'Not specified'}</p>
+                        <p class="card-text">Contests: ${contestCount}</p>
+                        <p class="card-text">Total Attempts: ${totalAttempts}</p>
+                        <p class="card-text">Solved Problems: ${solvedCount}</p>
                     </div>
                 </div>`;
         }
@@ -184,6 +184,19 @@
             }
         }
 
+        function getSolvedProblems(handle) {
+            const url = `https://codeforces.com/api/user.status?handle=${handle}&from=1&count=10000`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const solvedProblems = data.result.filter(item => item.verdict === "OK");
+                    const uniqueSolvedProblems = removeDuplicates(solvedProblems);
+                    displaySolvedProblems(uniqueSolvedProblems);
+                })
+                .catch(error => console.log("Error fetching solved problems: ", error));
+        }
+
         function displaySolvedProblems(problems) {
             const problemsDiv = document.getElementById("problems");
             problemsDiv.innerHTML = "";
@@ -205,7 +218,7 @@
                 problemCategory.classList.add("problem-category");
                 const ratingHeading = document.createElement("h2");
                 ratingHeading.classList.add("text-primary");
-                ratingHeading.innerHTML = `Rating: <span class="${getRatingColor(rating)}">${rating}</span> (${problemList.length} Problems)`;
+                ratingHeading.innerHTML = `Rating: <span class="${getRatingColor(rating)}">${rating}</span> (${problemList.length} problems)`;
                 ratingHeading.addEventListener("click", function() {
                     const list = this.nextElementSibling;
                     if (list.style.display === "none" || list.style.display === "") {
@@ -232,6 +245,7 @@
                     const problemInfoDiv = document.createElement("div");
                     problemInfoDiv.classList.add("problem-info");
 
+
                     // Add span for problem topics
                     const span = document.createElement("span");
                     span.classList.add("badge", "badge-primary", "badge-pill");
@@ -245,6 +259,25 @@
                 problemsDiv.appendChild(problemCategory);
             }
         }
+
+        function removeDuplicates(arr) {
+            const uniqueArray = arr.filter((problem, index, self) => 
+                index === self.findIndex(p => 
+                    p.problem.contestId === problem.problem.contestId && p.problem.index === problem.problem.index));
+            return uniqueArray;
+        }
+
+        document.getElementById("currentYear").innerText = new Date().getFullYear();
     </script>
+
+    <div class="footer">
+        &copy; <span id="currentYear"></span> Ahmed Khaled Gomaa | 
+        <a href="https://www.linkedin.com/in/ahmed-khaled-01ba9b222/" target="_blank">
+            Linked-in
+        </a> | 
+        <a href="https://codeforces.com/profile/_GOM3A_" target="_blank">
+            Codeforces
+        </a>
+    </div>
 </body>
 </html>
