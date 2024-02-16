@@ -1,0 +1,82 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin-top: 50px;
+}
+
+.problem-category {
+    margin-top: 20px;
+}
+
+.problem-category h2 {
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.problem-list {
+    display: none;
+}
+
+.problem-list.active {
+    display: block;
+}
+
+.legendary-grandmaster { color: red; }
+.grandmaster { color: #FF4500; }
+.international-master { color: #FFA500; }
+.candidate-master { color: mediumorchid; }
+.expert { color: blue; }
+.specialist { color: #20B2AA; }
+.pupil { color: green; }
+.newbie { color: #808080; }
+.legendary-grandmaster, .international-grandmaster { font-weight: bold; }
+.user-rating { font-weight: bold; }
+.green { color: #00FF00; }
+.red { color: #FF0000; }
+.problem-info {
+    margin-left: 10px;
+}
+.problem-link {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.problem-link:hover {
+    color: #0056b3;
+}
+.badge {
+    margin-left: 10px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.footer a {
+    color: #fff;
+    margin: 0 5px;
+}
+.footer {
+    margin-top: 15px;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    justify-content: center; /* توسيط العناصر بشكل أفقي */
+    align-items: center; /* توسيط العناصر عمودياً */
+    padding: 10px;
+}
