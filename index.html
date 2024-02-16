@@ -5,73 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Codeforces Profile</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            margin-top: 50px;
-        }
-        .problem-category {
-            margin-top: 20px;
-        }
-        .problem-category h2 {
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-        .problem-list {
-            display: none;
-        }
-        .problem-list.active {
-            display: block;
-        }
-        .legendary-grandmaster { color: red; }
-        .grandmaster { color: #FF4500; }
-        .international-master { color: #FFA500; }
-        .candidate-master { color: mediumorchid; }
-        .expert { color: blue; }
-        .specialist { color: #20B2AA; }
-        .pupil { color: green; }
-        .newbie { color: #808080; }
-        .legendary-grandmaster, .international-grandmaster { font-weight: bold; }
-        .user-rating { font-weight: bold; }
-        .green { color: #00FF00; }
-        .red { color: #FF0000; }
-        .problem-info {
-            margin-left: 10px;
-        }
-        .problem-link {
-            color: #007bff;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        .problem-link:hover {
-            color: #0056b3;
-        }
-        .badge {
-            margin-left: 10px;
-        }
-        .footer {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-        }
-        .footer a {
-            color: #fff;
-            margin: 0 5px;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-XzyV1A8CDHC3StpLqF/6WKlZC+hC2jz4Gw4vMQLrbva0LfrqGrbIZSNsXJ0UmKKU" crossorigin="anonymous">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center">Free Palestine </h1>
+        <h1 class="text-center">Free Palestine</h1>
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <input type="text" id="handleInput1" class="form-control mb-2" placeholder="Enter first handle (The information for that account will be displayed)">
@@ -87,201 +26,30 @@
         <div id="problems" class="mt-4"></div>
     </div>
 
-    <script>
-        function getProfile() {
-            handle1 = document.getElementById("handleInput1").value;
-            handle2 = document.getElementById("handleInput2").value;
-            if( handle2 == "" ){
-                handle2 = handle1;
-            }
-            if( handle1 == "" ){
-                handle1 = handle2;
-            }
-            const urlInfo1 = `https://codeforces.com/api/user.info?handles=${handle1}`;
-            const urlRating1 = `https://codeforces.com/api/user.rating?handle=${handle1}`;
-            const urlSubmissions1 = `https://codeforces.com/api/user.status?handle=${handle1}&from=1&count=10000`;
-            const urlSubmissions2 = `https://codeforces.com/api/user.status?handle=${handle2}&from=1&count=10000`;
-
-            fetch(urlInfo1)
-                .then(response => response.json())
-                .then(data => {
-                    const userInfo = data.result[0];
-                    const rank = userInfo.rank;
-                    const rating = userInfo.rating;
-                    const name = userInfo.firstName + " " + userInfo.lastName;
-                    const profilePic = userInfo.titlePhoto;
-                    const university = userInfo.organization;
-
-                    fetch(urlRating1)
-                        .then(response => response.json())
-                        .then(data => {
-                            const maxRating = Math.max(...data.result.map(entry => entry.newRating));
-                            const contestCount = data.result.length;
-
-                            fetch(urlSubmissions1)
-                                .then(response => response.json())
-                                .then(data => {
-                                    const solvedProblems1 = data.result.filter(item => item.verdict === "OK");
-                                    const uniqueSolvedProblems1 = removeDuplicates(solvedProblems1);
-
-                                    fetch(urlSubmissions2)
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            const solvedProblems2 = data.result.filter(item => item.verdict === "OK");
-                                            const uniqueSolvedProblems2 = removeDuplicates(solvedProblems2);
-
-                                            displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, uniqueSolvedProblems1.length, uniqueSolvedProblems2);
-                                            displaySolvedProblems(uniqueSolvedProblems1, uniqueSolvedProblems2);
-                                        })
-                                        .catch(error => console.log("Error fetching submissions for handle 2: ", error));
-                                })
-                                .catch(error => console.log("Error fetching submissions for handle 1: ", error));
-                        })
-                        .catch(error => console.log("Error fetching rating for handle 1: ", error));
-                })
-                .catch(error => console.log("Error fetching profile for handle 1: ", error));
-        }
-
-        function displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, solvedCount1, solvedProblems2) {
-            const profileInfo = document.getElementById("profileInfo");
-            profileInfo.innerHTML = `
-                <div class="card">
-                    <div class="card-body">
-                        <div class="text-center mb-3">
-                            <img src="${profilePic}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100px; height: 100px;">
-                        </div>
-                        <p class="card-text">Name: ${name}</p>
-                        <p class="card-text">Rank: <span class="${getRankColor(rank)}">${rank}</span></p>
-                        <p class="card-text">Rating: <span class="${getRatingColor(rating)}">${rating}</span></p>
-                        <p class="card-text">Max Rating: <span class="${getRatingColor(maxRating)}">${maxRating}</span></p>
-                        <p class="card-text">University: ${university || 'Not specified'}</p>
-                        <p class="card-text">Contests: ${contestCount}</p>
-                        <p class="card-text">Solved Problems: ${solvedCount1}</p>
-                    </div>
-                </div>`;
-        }
-
-        function displaySolvedProblems(problems1, problems2) {
-            const problemsDiv = document.getElementById("problems");
-            problemsDiv.innerHTML = "";
-
-            // Grouping problems by rating
-            const groupedProblems1 = {};
-            problems1.forEach(problem => {
-                const rating = problem.problem.rating;
-                if (!groupedProblems1[rating]) {
-                    groupedProblems1[rating] = [];
-                }
-                groupedProblems1[rating].push(problem);
-            });
-
-            // Displaying grouped problems for handle 1
-            for (const rating in groupedProblems1) {
-                const problemList1 = groupedProblems1[rating];
-                const problemCategory = document.createElement("div");
-                problemCategory.classList.add("problem-category");
-                const ratingHeading = document.createElement("h2");
-                ratingHeading.classList.add("text-primary");
-                ratingHeading.innerHTML = `Rating: <span class="${getRatingColor(rating)}">${rating}</span> (${problemList1.length} problems) ▼`;
-                ratingHeading.addEventListener("click", function() {
-                    const list = this.nextElementSibling;
-                    list.classList.toggle("active");
-                });
-                problemCategory.appendChild(ratingHeading);
-                const ul = document.createElement("ul");
-                ul.classList.add("list-group", "problem-list");
-                problemList1.forEach(problem => {
-                    const li = document.createElement("li");
-                    li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-                    
-                    // Add link to the problem on Codeforces
-                    const problemLink = document.createElement("a");
-                    problemLink.href = `https://codeforces.com/contest/${problem.problem.contestId}/problem/${problem.problem.index}`;
-                    problemLink.textContent = problem.problem.name;
-                    problemLink.classList.add("problem-link");
-                    problemLink.target = "_blank"; // Open link in a new tab
-
-                    // Check if problem is solved by handle 2 and add appropriate symbol
-                    const isSolvedByHandle2 = problems2.some(p => p.problem.contestId === problem.problem.contestId && p.problem.index === problem.problem.index);
-                    const icon = document.createElement("span");
-                    icon.classList.add("badge", "badge-pill", isSolvedByHandle2 ? "badge-success" : "badge-danger");
-                    icon.textContent = isSolvedByHandle2 ? "✓" : "✗";
-
-                    li.appendChild(problemLink);
-                    li.appendChild(icon);
-                    ul.appendChild(li);
-                });
-                problemCategory.appendChild(ul);
-                problemsDiv.appendChild(problemCategory);
-            }
-        }
-
-        function removeDuplicates(arr) {
-            const uniqueArray = arr.filter((problem, index, self) => 
-                index === self.findIndex(p => 
-                    p.problem.contestId === problem.problem.contestId && p.problem.index === problem.problem.index));
-            return uniqueArray;
-        }
-
-        function getRankColor(rank) {
-            switch(rank) {
-                case "legendary grandmaster":
-                case "international grandmaster":
-                    return "legendary-grandmaster";
-                case "grandmaster":
-                    return "grandmaster";
-                case "international master":
-                    return "international-master";
-                case "candidate master":
-                    return "candidate-master";
-                case "expert":
-                    return "expert";
-                case "specialist":
-                    return "specialist";
-                case "pupil":
-                    return "pupil";
-                case "newbie":
-                    return "newbie";
-                default:
-                    return "";
-            }
-        }
-
-        function getRatingColor(rating) {
-            if (rating >= 2400) {
-                return "legendary-grandmaster";
-            } else if (rating >= 2300) {
-                return "grandmaster";
-            } else if (rating >= 2100) {
-                return "international-master";
-            } else if (rating >= 1900) {
-                return "candidate-master";
-            } else if (rating >= 1600) {
-                return "expert";
-            } else if (rating >= 1400) {
-                return "specialist";
-            } else if (rating >= 1200) {
-                return "pupil";
-            } else {
-                return "newbie";
-            }
-        }
-
-        document.getElementById("currentYear").innerText = new Date().getFullYear();
-    </script>
-
     <div class="footer">
         &copy; <span id="currentYear"></span> Ahmed Khaled Gomaa | 
-        <a href="https://www.linkedin.com/in/ahmed-khaled-01ba9b222/" target="_blank">
+        <a href="https://www.linkedin.com/in/ahmed-khaled-01ba9b222/" target="_blank" style="color: #007BFF;">
             Linked-in
         </a> | 
-        <a href="https://codeforces.com/profile/_GOM3A_" target="_blank">
+        <a href="https://codeforces.com/profile/_GOM3A_" target="_blank" style="color: #007BFF;">
             Codeforces
         </a> |
-        <a href="https://codeforces.com/group/rjUbMTacuS/blog">
+        <a href="https://codeforces.com/group/rjUbMTacuS/blog" target="_blank" style="color: #007BFF;">
             IcpcHelwan Global Contests
-        </a>
+        </a> |
+        I did not participate in creating this website, but I would like to present it to you ( 
+        <a href="https://badeel.wiki/" target="_blank" style="color: #007BFF;">
+            بَدِيل
+        </a> 
+        )
+        
+        </div>
+    
+    
 
-    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
