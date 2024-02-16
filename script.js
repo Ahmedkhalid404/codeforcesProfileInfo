@@ -85,7 +85,7 @@ function createProblemListItem(problem, solved) {
 
     const icon = document.createElement("span");
     icon.classList.add("badge", "badge-pill", solved ? "badge-success" : "badge-danger");
-    icon.textContent = solved ? "Accepted" : "✗";
+    icon.textContent = solved ? "✓" : "✗";
 
     li.appendChild(problemLink);
     li.appendChild(icon);
