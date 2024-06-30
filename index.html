@@ -1,3 +1,4 @@
+<!-- صلي ع الحبيب قلبك يطيب :) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +11,9 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center">Free Palestine</h1>
+        <div class="word-container">
+            <h1 id="wordDisplay" class="text-center">Free Palestine</h1>
+        </div>
         <div class="row justify-content-center">
             <div class="col-md-6">
                 <input type="text" id="handleInput1" class="form-control mb-2" placeholder="Enter first handle (The information for that account will be displayed)">
@@ -23,6 +26,52 @@
             </div>
         </div>
         <div id="profileInfo" class="mt-4"></div>
+        <div id="challengeSection" class="mt-4" style="display: none;">
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    <select id="ratingSelect" class="form-control mb-2">
+                        <option value="">Select Rating</option>
+                        <option value="800">800</option>
+                        <option value="900">900</option>
+                        <option value="1000">1000</option>
+                        <option value="1100">1100</option>
+                        <option value="1200">1200</option>
+                        <option value="1300">1300</option>
+                        <option value="1400">1400</option>
+                        <option value="1500">1500</option>
+                        <option value="1600">1600</option>
+                        <option value="1700">1700</option>
+                        <option value="1800">1800</option>
+                        <option value="1900">1900</option>
+                        <option value="2000">2000</option>
+                        <option value="2100">2100</option>
+                        <option value="2200">2200</option>
+                        <option value="2300">2300</option>
+                        <option value="2400">2400</option>
+                        <option value="2500">2500</option>
+                        <option value="2600">2600</option>
+                        <option value="2700">2700</option>
+                        <option value="2800">2800</option>
+                        <option value="2900">2900</option>
+                        <option value="3000">3000</option>
+                        <option value="3100">3100</option>
+                        <option value="3200">3200</option>
+                        <option value="3300">3300</option>
+                        <option value="3400">3400</option>
+                        <option value="3500">3500</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button onclick="getChallenge()" class="btn btn-success btn-block">Get Challenge</button>
+                </div>
+            </div>
+            <div id="challengeLink" class="mt-3 text-center">
+                <!-- Spinner element, initially hidden -->
+                <div id="loadingSpinner" class="spinner-border text-primary" role="status" style="display: none;">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
         <div id="problems" class="mt-4"></div>
     </div>
 
@@ -42,11 +91,8 @@
             بَدِيل
         </a> 
         )
-        
-        </div>
+    </div>
     
-    
-
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
