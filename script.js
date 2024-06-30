@@ -1,67 +1,67 @@
+// صلي ع الحبيب قلبك يطيب :)
 function getProfile() {
     let handle1 = document.getElementById("handleInput1").value;
     let handle2 = document.getElementById("handleInput2").value;
 
-    if (handle2 == "") {
+    if (handle2 === "") {
         handle2 = handle1;
     }
 
-    if (handle1 == "") {
+    if (handle1 === "") {
         handle1 = handle2;
     }
 
     const urlInfo1 = `https://codeforces.com/api/user.info?handles=${handle1}`;
+    const urlInfo2 = `https://codeforces.com/api/user.info?handles=${handle2}`;
     const urlRating1 = `https://codeforces.com/api/user.rating?handle=${handle1}`;
     const urlSubmissions1 = `https://codeforces.com/api/user.status?handle=${handle1}&from=1&count=10000`;
     const urlSubmissions2 = `https://codeforces.com/api/user.status?handle=${handle2}&from=1&count=10000`;
 
-    fetch(urlInfo1)
-        .then(response => response.json())
-        .then(data => {
-            const userInfo = data.result[0];
-            const rank = userInfo.rank;
-            const rating = userInfo.rating;
-            const name = userInfo.firstName + " " + userInfo.lastName;
-            const profilePic = userInfo.titlePhoto;
-            const university = userInfo.organization;
+    Promise.all([
+        fetch(urlInfo1).then(response => response.json()),
+        fetch(urlInfo2).then(response => response.json()),
+        fetch(urlRating1).then(response => response.json()),
+        fetch(urlSubmissions1).then(response => response.json()),
+        fetch(urlSubmissions2).then(response => response.json())
+    ])
+    .then(data => {
+        const userInfo1 = data[0].result[0];
+        const userInfo2 = data[1].result[0];
+        const ratingData1 = data[2].result;
+        const submissionsData1 = data[3].result;
+        const submissionsData2 = data[4].result;
 
-            fetch(urlRating1)
-                .then(response => response.json())
-                .then(data => {
-                    const maxRating = Math.max(...data.result.map(entry => entry.newRating));
-                    const contestCount = data.result.length;
+        const rank = userInfo1.rank;
+        const rating = userInfo1.rating;
+        const name = userInfo1.firstName + " " + userInfo1.lastName;
+        const profilePic1 = userInfo1.titlePhoto;
+        const profilePic2 = userInfo2.titlePhoto;
+        const university = userInfo1.organization;
+        const maxRating = Math.max(...ratingData1.map(entry => entry.newRating));
+        const contestCount = ratingData1.length;
+        const solvedProblems1 = submissionsData1.filter(item => item.verdict === "OK");
+        const uniqueSolvedProblems1 = removeDuplicates(solvedProblems1);
+        const solvedProblems2 = submissionsData2.filter(item => item.verdict === "OK");
+        const uniqueSolvedProblems2 = removeDuplicates(solvedProblems2);
 
-                    fetch(urlSubmissions1)
-                        .then(response => response.json())
-                        .then(data => {
-                            const solvedProblems1 = data.result.filter(item => item.verdict === "OK");
-                            const uniqueSolvedProblems1 = removeDuplicates(solvedProblems1);
+        displayProfile(name, rank, rating, maxRating, profilePic1, profilePic2, university, contestCount, uniqueSolvedProblems1.length, uniqueSolvedProblems2);
+        displaySolvedProblems(uniqueSolvedProblems1, uniqueSolvedProblems2);
 
-                            fetch(urlSubmissions2)
-                                .then(response => response.json())
-                                .then(data => {
-                                    const solvedProblems2 = data.result.filter(item => item.verdict === "OK");
-                                    const uniqueSolvedProblems2 = removeDuplicates(solvedProblems2);
-
-                                    displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, uniqueSolvedProblems1.length, uniqueSolvedProblems2);
-                                    displaySolvedProblems(uniqueSolvedProblems1, uniqueSolvedProblems2);
-                                })
-                                .catch(error => console.log("Error fetching submissions for handle 2: ", error));
-                        })
-                        .catch(error => console.log("Error fetching submissions for handle 1: ", error));
-                })
-                .catch(error => console.log("Error fetching rating for handle 1: ", error));
-        })
-        .catch(error => console.log("Error fetching profile for handle 1: ", error));
+        // Show the challenge section after displaying the profiles
+        document.getElementById("challengeSection").style.display = "block";
+    })
+    .catch(error => console.log("Error fetching data: ", error));
 }
 
-function displayProfile(name, rank, rating, maxRating, profilePic, university, contestCount, solvedCount1, solvedProblems2) {
+function displayProfile(name, rank, rating, maxRating, profilePic1, profilePic2, university, contestCount, solvedCount1, solvedProblems2) {
     const profileInfo = document.getElementById("profileInfo");
     profileInfo.innerHTML = `
         <div class="card">
             <div class="card-body">
                 <div class="text-center mb-3">
-                    <img src="${profilePic}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100px; height: 100px;">
+                    <img src="${profilePic1}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100px; height: 100px; margin-right: 10px;">
+                    <span class="vs-sign">vs</span>
+                    <img src="${profilePic2}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100px; height: 100px;">
                 </div>
                 <p class="card-text">Name: ${name}</p>
                 <p class="card-text">Rank: <span class="${getRankColor(rank)}">${rank}</span></p>
@@ -73,6 +73,57 @@ function displayProfile(name, rank, rating, maxRating, profilePic, university, c
             </div>
         </div>`;
 }
+
+function getChallenge() {
+    const selectedRating = document.getElementById("ratingSelect").value;
+    if (!selectedRating) {
+        alert("Please select a rating");
+        return;
+    }
+
+    const handle1 = document.getElementById("handleInput1").value;
+    const handle2 = document.getElementById("handleInput2").value;
+
+    const urlSubmissions1 = `https://codeforces.com/api/user.status?handle=${handle1}&from=1&count=10000`;
+    const urlSubmissions2 = `https://codeforces.com/api/user.status?handle=${handle2}&from=1&count=10000`;
+
+    Promise.all([
+        fetch(urlSubmissions1).then(response => response.json()),
+        fetch(urlSubmissions2).then(response => response.json())
+    ])
+    .then(data => {
+        const submissionsData1 = data[0].result;
+        const submissionsData2 = data[1].result;
+
+        const solvedProblems1 = submissionsData1.filter(item => item.verdict === "OK" && item.problem.rating == selectedRating);
+        const uniqueSolvedProblems1 = removeDuplicates(solvedProblems1);
+        const solvedProblems2 = submissionsData2.filter(item => item.verdict === "OK");
+        const uniqueSolvedProblems2 = removeDuplicates(solvedProblems2);
+
+        const unsolvedProblems = uniqueSolvedProblems1.filter(problem => 
+            !uniqueSolvedProblems2.some(p => p.problem.contestId === problem.problem.contestId && p.problem.index === problem.problem.index)
+        );
+
+        const challengeLinkDiv = document.getElementById("challengeLink");
+        challengeLinkDiv.innerHTML = ""; // Clear any existing content
+
+        if (unsolvedProblems.length === 0) {
+            challengeLinkDiv.innerHTML = "<p>You already solve all problems your rival solved ;)</p>";
+        } else {
+            const randomProblem = unsolvedProblems[Math.floor(Math.random() * unsolvedProblems.length)];
+            const problemLink = `https://codeforces.com/contest/${randomProblem.problem.contestId}/problem/${randomProblem.problem.index}`;
+            const problemLinkElement = document.createElement("a");
+            problemLinkElement.href = problemLink;
+            problemLinkElement.textContent = `Your Challenge: ${randomProblem.problem.name}`; // Display "Your Challenge: Problem Name"
+            problemLinkElement.target = "_blank";
+            challengeLinkDiv.appendChild(problemLinkElement);
+        }
+    })
+    .catch(error => console.log("Error fetching data: ", error));
+}
+
+
+
 function createProblemListItem(problem, solved) {
     const li = document.createElement("li");
     li.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
@@ -92,8 +143,6 @@ function createProblemListItem(problem, solved) {
     
     return li;
 }
-
-
 
 function displaySolvedProblems(problems1, problems2) {
     const problemsDiv = document.getElementById("problems");
@@ -123,13 +172,11 @@ function displaySolvedProblems(problems1, problems2) {
         const ul = document.createElement("ul");
         ul.classList.add("list-group", "problem-list");
 
-        // Creating list items for problems without the "x" mark first
         problemList1.filter(problem => !problems2.some(p => p.problem.contestId === problem.problem.contestId && p.problem.index === problem.problem.index)).forEach(problem => {
             const li = createProblemListItem(problem, false);
             ul.appendChild(li);
         });
 
-        // Creating list items for solved problems after
         problemList1.filter(problem => problems2.some(p => p.problem.contestId === problem.problem.contestId && p.problem.index === problem.problem.index)).forEach(problem => {
             const li = createProblemListItem(problem, true);
             ul.appendChild(li);
@@ -139,8 +186,6 @@ function displaySolvedProblems(problems1, problems2) {
         problemsDiv.appendChild(problemCategory);
     }
 }
-
-
 
 function removeDuplicates(arr) {
     const uniqueArray = arr.filter((problem, index, self) => 
@@ -194,6 +239,47 @@ function getRatingColor(rating) {
 }
 
 document.getElementById("currentYear").innerText = new Date().getFullYear();
+
 function scrollToTop() {
     window.scrollTo(0, 0);
 }
+
+// randomWord.js
+const words = [
+    "يارب وكل من عاونهم . . . قاطع !",
+    "مَتْعَيَطِش يا زلَمِة, كِلنْا مَشروع شُهداء",
+    "أمَانة يا خال نِفْسي أشوفه",
+    "يَابَا, مِش كَانَ بِدَّك تِطْلَع صَحَفِي؟",
+    "سَبَع سِنِين شَعْرُه أبْيَض وكيرلي وحِلو",
+    "كُنْتَ نَاوِي اعْمِلَّهَا عِيدَ مِيلَادٍ",
+    "مِين ضَلَّ عَايَشَ؟",
+    "بِدِّي أَلْعَب, بِدِّي أَلْعَب بَسْ",
+    "خَلِّية فِي حُضْنِي, خَلِّية فِي حُضْنِي",
+    "ماما أنا تِعِبْت من هذا الصوت",
+    "بِدِّي شَعْرَةً مِنُّه",
+    "..مَعْلِش",
+    "روح الروح, هذى روح الروح",
+    "والله ياما أخذت ٥٨٠ إبرة عشانه",
+    "هَي أِمَّي.. بَعْرِفْها مِن شَعْرَهَا"
+];
+
+function displayWord(word, index, speed) {
+    const wordDisplay = document.getElementById("wordDisplay");
+    wordDisplay.textContent = word.slice(0, index); 
+
+    if (index < word.length) {
+    setTimeout(() => {
+        displayWord(word, index + 1, speed); 
+    }, speed);
+    } else {
+    setTimeout(updateWord, 2000); 
+    }
+}
+
+function updateWord() {
+    const randomIndex = Math.floor(Math.random() * words.length);
+    const randomWord = words[randomIndex];
+    displayWord(randomWord, 0, 100);
+}
+
+updateWord();
