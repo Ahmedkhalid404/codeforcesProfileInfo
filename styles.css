@@ -1,3 +1,4 @@
+/* صلي ع الحبيب قلبك يطيب :) */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
@@ -76,7 +77,27 @@ body {
     background-color: #333;
     color: #fff;
     display: flex;
-    justify-content: center; /* توسيط العناصر بشكل أفقي */
-    align-items: center; /* توسيط العناصر عمودياً */
+    justify-content: center;
+    align-items: center;
     padding: 10px;
+}
+
+.vs-sign {
+    font-size: 2em;
+    margin: 0 10px;
+    color: #000;
+    display: inline-block;
+    vertical-align: middle;
+}
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+    margin: 10px auto;
+}
+.word-container {
+    position: relative;
+    width: 100%; 
+    height: 50px; 
+    margin-bottom: 10px;
+    overflow: hidden; 
 }
